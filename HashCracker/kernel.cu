@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <openssl/sha.h >
+#include "Sequenziale/sequenziale.h"
 
 char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#-.\0"; // 67 caratteri
 
@@ -27,10 +28,49 @@ int main(int argc, char** argv)
     }
     printf("%s Starting...\n", argv[0]);*/
 
+    /* TEST VERSIONE SEQUENZIALE */
+    const char* secret_password = "abcd3";
+    unsigned char target_hash[SHA256_DIGEST_LENGTH];
+
+    SHA256((const unsigned char*)secret_password, strlen(secret_password), target_hash);
+
+    printf("--- Inizio Test Brute Force CPU ---\n");
+    printf("Target (segreto): '%s'\n", secret_password);
+    printf("Hash Target: ");
+    for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) printf("%02x", target_hash[i]);
+    printf("\n\n");
+
+    char found_password[100] = { 0 };
+
+
+    int max_test_len = 5;
+
+    for (int len = 1; len <= max_test_len; len++) {
+        printf("Tentativo lunghezza %d... ", len);
+        fflush(stdout);
+
+        bruteForceSequenziale(len, target_hash, charset, found_password);
+
+        if (strlen(found_password) > 0) {
+            printf("TROVATA!\n");
+            printf("Password decifrata: %s\n", found_password);
+            break;
+        }
+        else {
+            printf("Nessuna corrispondenza.\n");
+        }
+    }
+
+    if (strlen(found_password) == 0) {
+        printf("\nPassword non trovata nel range di lunghezza 1-%d.\n", max_test_len);
+    }
+
     //Imposta il device CUDA
     int dev = 0;
     cudaDeviceProp deviceProp;
     CHECK(cudaGetDeviceProperties(&deviceProp, dev)); //Ottiene le proprietà del device 
     printf("Using Device %d: %s\n", dev, deviceProp.name);
     CHECK(cudaSetDevice(dev)); //Seleziona il device CUDA
+
+    return 0;
 }

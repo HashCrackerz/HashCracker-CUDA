@@ -20,17 +20,7 @@ char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789
     } \
 }
 
-int main(int argc, char** argv)
-{
-    /*
-    if (argc != 2) {
-        printf("Usage: %s <image_file>\n", argv[0]);
-        return 1;
-    }
-    printf("%s Starting...\n", argv[0]);*/
-
-    /* TEST VERSIONE SEQUENZIALE */
-    const char* secret_password = "abcd3";
+void testSequenziale(char *secret_password, int min_test_len, int max_test_len) {    
     unsigned char target_hash[SHA256_DIGEST_LENGTH];
 
     SHA256((const unsigned char*)secret_password, strlen(secret_password), target_hash);
@@ -43,13 +33,10 @@ int main(int argc, char** argv)
 
     char found_password[100] = { 0 };
 
-
-    int max_test_len = 5;
-
     // start time 
     clock_t start = clock(); //clock() restituisce il numero di tick dall'avvio del programma
 
-    for (int len = 1; len <= max_test_len; len++) {
+    for (int len = min_test_len; len <= max_test_len; len++) {
         printf("Tentativo lunghezza %d... ", len);
         fflush(stdout);
 
@@ -75,7 +62,23 @@ int main(int argc, char** argv)
     if (strlen(found_password) == 0) {
         printf("\nPassword non trovata nel range di lunghezza 1-%d.\n", max_test_len);
     }
+}
 
+int main(int argc, char** argv)
+{
+    /*
+    if (argc != 2) {
+        printf("Usage: %s <image_file>\n", argv[0]);
+        return 1;
+    }
+    printf("%s Starting...\n", argv[0]);*/
+
+    char* secret_password = "abcd3";
+    int max_test_len = 5;
+    int min_test_len = 1; 
+
+    /* TEST VERSIONE SEQUENZIALE */
+    testSequenziale(secret_password, min_test_len, max_test_len);
 
     //Imposta il device CUDA
     int dev = 0;

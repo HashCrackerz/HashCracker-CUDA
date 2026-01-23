@@ -2,11 +2,17 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <CudaCompile Include="kernel.cu" />
+    <CudaCompile Include="SHA256_CUDA\sha256.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Sequenziale\sequenziale.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Sequenziale\sequenziae.h" />
+    <ClInclude Include="Sequenziale\sequenziale.h" />
+    <ClInclude Include="SHA256_CUDA\config.h" />
+    <ClInclude Include="SHA256_CUDA\sha256.cuh" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="TODO.md" />
   </ItemGroup>
 </Project>

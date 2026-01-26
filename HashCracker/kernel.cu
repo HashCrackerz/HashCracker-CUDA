@@ -2,7 +2,7 @@
 #include "device_launch_parameters.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <openssl/sha.h >
+#include <openssl/sha.h>
 #include "Sequenziale/sequenziale.h"
 #include <time.h>
 #include "UTILS/cuda_utils.cuh"
@@ -26,6 +26,8 @@ int main(int argc, char** argv)
 {
     char charSet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#-.\0"; // 67 caratteri
     int charSetLen = strlen(charSet);
+    char secret_password[] = "qwerty";
+
     /*
     if (argc != 2) {
         printf("Usage: %s <image_file>\n", argv[0]);
@@ -41,7 +43,6 @@ int main(int argc, char** argv)
     CHECK(cudaSetDevice(dev)); //Seleziona il device CUDA
 
     /* argomenti per invocare le funzioni di hash*/
-    char secret_password[] = "abcd3";
     unsigned char target_hash[SHA256_DIGEST_LENGTH];
 
     SHA256((const unsigned char*)secret_password, strlen(secret_password), target_hash);
@@ -50,8 +51,10 @@ int main(int argc, char** argv)
     printf("Hash Target: ");
     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) printf("%02x", target_hash[i]);
     printf("\n\n");
-    int max_test_len = 5;
+    int max_test_len = 6;
     int min_test_len = 1; 
+
+    printf("min_test_len %d , max_test_len %d\n\n", min_test_len, max_test_len);
 
     /* TEST VERSIONE SEQUENZIALE */
     testSequenziale(target_hash, min_test_len, max_test_len, charSet);

@@ -100,19 +100,9 @@
     </CudaLink>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="CUDAv1\cuda_v1.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </CudaCompile>
-    <CudaCompile Include="CUDA_NAIVE\cuda_naive.cu" />
-    <CudaCompile Include="kernel.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </CudaCompile>
-    <CudaCompile Include="SHA256_CUDA\sha256.cu">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </CudaCompile>
+    <CudaCompile Include="CUDAv2\cuda_v2.cu" />
+    <CudaCompile Include="kernel_v2.cu" />
+    <CudaCompile Include="SHA256_CUDA _OPT\sha256_opt.cu" />
     <CudaCompile Include="UTILS\cuda_utils.cu" />
   </ItemGroup>
   <ItemGroup>
@@ -130,20 +120,10 @@
     <ClCompile Include="UTILS\utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CUDAv1\cuda_v1.cuh">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="CUDA_NAIVE\cuda_naive.cuh" />
+    <ClInclude Include="CUDAv2\cuda_v2.cuh" />
     <ClInclude Include="Sequenziale\sequenziale.h" />
-    <ClInclude Include="SHA256_CUDA\config.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClInclude>
-    <ClInclude Include="SHA256_CUDA\sha256.cuh">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="SHA256_CUDA _OPT\config.h" />
+    <ClInclude Include="SHA256_CUDA _OPT\sha256_opt.cuh" />
     <ClInclude Include="UTILS\cuda_utils.cuh" />
     <ClInclude Include="UTILS\utils.h" />
   </ItemGroup>

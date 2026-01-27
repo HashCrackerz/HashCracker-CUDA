@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <openssl/sha.h>
-#include "Sequenziale/sequenziale.h"
 #include <time.h>
 #include "UTILS/cuda_utils.cuh"
 #include <math.h>
@@ -23,10 +22,10 @@
 }
 
 #define MAX_CANDIDATE 16
-//#define MAX_CHARSET_LENGTH 67
+#define MAX_CHARSET_LENGTH 67
 
-//__constant__ BYTE d_target_hash[SHA256_DIGEST_LENGTH];
-//__constant__ char d_charSet[MAX_CHARSET_LENGTH];
+__constant__ BYTE d_target_hash[SHA256_DIGEST_LENGTH];
+__constant__ char d_charSet[MAX_CHARSET_LENGTH];
 
 int main(int argc, char** argv)
 {
@@ -85,70 +84,13 @@ int main(int argc, char** argv)
     printf("min_test_len %d , max_test_len %d\n", min_test_len, max_test_len);
     printf("CharSet: %s\n", charSet);
 
-    /* TEST VERSIONE SEQUENZIALE */
-    /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    //testSequenziale(target_hash, min_test_len, max_test_len, charSet);
-    /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-
     int blockSize = 256;
-
-    /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    /* TEST VERSIONE CUDA NAIVE */
-    /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    printf("--- Inizio Test Brute Force GPU NAIVE ---\n");
-    // Allocazione variaibli device
-    BYTE* d_target_hash;
-    char* d_charSet, * d_result;
-    bool* d_found;
-    char h_result[MAX_CANDIDATE];
-
-    CHECK(cudaMalloc((void**)&d_target_hash, sizeof(BYTE) * SHA256_DIGEST_LENGTH));
-    CHECK(cudaMemcpy(d_target_hash, target_hash, sizeof(BYTE) * SHA256_DIGEST_LENGTH, cudaMemcpyHostToDevice));
-
-    CHECK(cudaMalloc((void**)&d_charSet, sizeof(char) * charSetLen));
-    CHECK(cudaMemcpy(d_charSet, charSet, sizeof(char) * charSetLen, cudaMemcpyHostToDevice));
-
-    CHECK(cudaMalloc((void**)&d_found, sizeof(bool)));
-    CHECK(cudaMemset(d_found, false, sizeof(bool)));
-
-    CHECK(cudaMalloc((void**)&d_result, MAX_CANDIDATE * sizeof(char)));
-    CHECK(cudaMemset(d_result, 0, max_test_len * sizeof(char)));
-
-
-    for (int len = min_test_len; len <= max_test_len; len++)
-    {
-        unsigned long long totalCombinations = pow((double)charSetLen, (double)len);
-        printf("Controllo kernel naive con lunghezza %d (Combinazioni tot: %llu)...\n", len, totalCombinations);
-
-        int numBlocks = (totalCombinations + blockSize - 1) / blockSize;
-
-        bruteForceKernel_Naive << <numBlocks, blockSize >> > (
-            len,
-            d_target_hash,
-            d_charSet,
-            d_result,
-            charSetLen,
-            totalCombinations,
-            d_found
-            );
-    }
-
-    CHECK(cudaDeviceSynchronize()); // Attendo terminazione kernel
-    CHECK(cudaMemcpy(h_result, d_result, sizeof(char) * MAX_CANDIDATE, cudaMemcpyDeviceToHost));
-    printf("Password decifrata: %s\n", h_result);
-
-    // Deallocazione variaibli device
-    CHECK(cudaFree(d_charSet));
-    CHECK(cudaFree(d_target_hash));
-    CHECK(cudaFree(d_found));
-    CHECK(cudaFree(d_result));
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------*/
 /* ---- TEST VERSIONE CUDA v1 ---- */
 /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    /*printf("--- Inizio Test Brute Force GPU v1 ---\n");
+    printf("--- Inizio Test Brute Force GPU v1 ---\n");
     // Allocazione variaibli device
-
     char* d_result;
     bool* d_found;
     char h_result[MAX_CANDIDATE];

@@ -1,5 +1,5 @@
 /*
- * Type Definitions for CUDA Hashing Algos
+ * Type Definitions for HIP Hashing Algos
  *
  * Date: 12 June 2019
  * Revision: 1
@@ -13,7 +13,7 @@
 #define USE_SHA1 1
 #define USE_SHA256 1
 
-#define CUDA_HASH 1
+#define HIP_HASH 1
 #define OCL_HASH 0
 
 typedef unsigned char BYTE;

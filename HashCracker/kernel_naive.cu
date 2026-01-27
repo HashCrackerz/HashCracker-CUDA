@@ -1,21 +1,23 @@
-﻿#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
+#include <hip/hip_runtime.h>
+// #include "device_launch_parameters.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include "UTILS/cuda_utils.cuh"
+#include "UTILS/hip_utils.cuh"
 #include <math.h>
-#include "CUDA_NAIVE/cuda_naive.cuh"
+#include "HIP_NAIVE/hip_naive.cuh"
 #include "UTILS/utils.h"
 #include <openssl/sha.h>
 
+#include "SHA256_HIP/sha256.cuh"
+
 #define CHECK(call) \
 { \
-    const cudaError_t error = call; \
-    if (error != cudaSuccess) \
+    const hipError_t error = call; \
+    if (error != hipSuccess) \
     { \
         printf("Error: %s:%d, ", __FILE__, __LINE__); \
-        printf("code: %d, reason: %s\n", error, cudaGetErrorString(error)); \
+        printf("code: %d, reason: %s\n", error, hipGetErrorString(error)); \
         exit(1); \
     } \
 }
@@ -32,39 +34,47 @@ int main(int argc, char** argv)
     char* charSet, * secret_password;
     int min_test_len, max_test_len;
     bool dizionario = false;
+    double iStart, iElaps;
+    int blockSize;
 
     /* --- CONTROLLO ARGOMENTI DI INVOCAZIONE --- */
-    if (argc != 6 && argc != 7) {
-        printf("Usage: %s <password_in_chiaro> <min_len> <max_len> <file_charset> <dizionario si/no> [file_dizionario]\n", argv[0]);
+    if (argc < 6 && argc > 8) {
+        printf("Usage: %s <block_size> <password_in_chiaro> <min_len> <max_len> <file_charset> <dizionario si/no> [file_dizionario]\n", argv[0]);
         return 1;
     }
-    secret_password = argv[1];
+    secret_password = argv[2];
 
-    if (!safe_atoi(argv[2], &min_test_len))
+    if (!safe_atoi(argv[1], &blockSize))
     {
         perror("Errore nella conversione di min_test_len");
         exit(1);
     }
-    if (!safe_atoi(argv[3], &max_test_len))
+
+    if (!safe_atoi(argv[3], &min_test_len))
+    {
+        perror("Errore nella conversione di min_test_len");
+        exit(1);
+    }
+    if (!safe_atoi(argv[4], &max_test_len))
     {
         perror("Errore nella conversione di max_test_len");
         exit(1);
     }
 
-    charSet = leggiCharSet(argv[4]);
+    charSet = leggiCharSet(argv[5]);
     int charSetLen = strlen(charSet);
 
-    if (argv[5][0] == 'S' || argv[5][0] == 's' || argv[5][0] == 'Y' || argv[5][0] == 'y')
+    if (argv[6][0] == 'S' || argv[6][0] == 's' || argv[6][0] == 'Y' || argv[6][0] == 'y')
     {
         dizionario = true;
     }
 
     printf("%s Starting...\n", argv[0]);
 
-    //Imposta il device CUDA
+    //Imposta il device HIP
     int dev = 0;
     printDeviceProperties(dev);
-    CHECK(cudaSetDevice(dev)); //Seleziona il device CUDA
+    CHECK(hipSetDevice(dev)); //Seleziona il device HIP
 
     /* argomenti per invocare le funzioni di hash*/
     unsigned char target_hash[SHA256_DIGEST_LENGTH];
@@ -78,10 +88,8 @@ int main(int argc, char** argv)
     printf("min_test_len %d , max_test_len %d\n", min_test_len, max_test_len);
     printf("CharSet: %s\n", charSet);
 
-    int blockSize = 256;
-
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    /* TEST VERSIONE CUDA NAIVE */
+    /* TEST VERSIONE HIP NAIVE */
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
     printf("--- Inizio Test Brute Force GPU NAIVE ---\n");
     // Allocazione variaibli device
@@ -90,19 +98,19 @@ int main(int argc, char** argv)
     bool* d_found;
     char h_result[MAX_CANDIDATE];
 
-    CHECK(cudaMalloc((void**)&d_target_hash, sizeof(BYTE) * SHA256_DIGEST_LENGTH));
-    CHECK(cudaMemcpy(d_target_hash, target_hash, sizeof(BYTE) * SHA256_DIGEST_LENGTH, cudaMemcpyHostToDevice));
+    CHECK(hipMalloc((void**)&d_target_hash, sizeof(BYTE) * SHA256_DIGEST_LENGTH));
+    CHECK(hipMemcpy(d_target_hash, target_hash, sizeof(BYTE) * SHA256_DIGEST_LENGTH, hipMemcpyHostToDevice));
 
-    CHECK(cudaMalloc((void**)&d_charSet, sizeof(char) * charSetLen));
-    CHECK(cudaMemcpy(d_charSet, charSet, sizeof(char) * charSetLen, cudaMemcpyHostToDevice));
+    CHECK(hipMalloc((void**)&d_charSet, sizeof(char) * charSetLen));
+    CHECK(hipMemcpy(d_charSet, charSet, sizeof(char) * charSetLen, hipMemcpyHostToDevice));
 
-    CHECK(cudaMalloc((void**)&d_found, sizeof(bool)));
-    CHECK(cudaMemset(d_found, false, sizeof(bool)));
+    CHECK(hipMalloc((void**)&d_found, sizeof(bool)));
+    CHECK(hipMemset(d_found, false, sizeof(bool)));
 
-    CHECK(cudaMalloc((void**)&d_result, MAX_CANDIDATE * sizeof(char)));
-    CHECK(cudaMemset(d_result, 0, max_test_len * sizeof(char)));
+    CHECK(hipMalloc((void**)&d_result, MAX_CANDIDATE * sizeof(char)));
+    CHECK(hipMemset(d_result, 0, max_test_len * sizeof(char)));
 
-
+    iStart = cpuSecond();
     for (int len = min_test_len; len <= max_test_len; len++)
     {
         unsigned long long totalCombinations = pow((double)charSetLen, (double)len);
@@ -110,7 +118,7 @@ int main(int argc, char** argv)
 
         int numBlocks = (totalCombinations + blockSize - 1) / blockSize;
 
-        bruteForceKernel_Naive << <numBlocks, blockSize >> > (
+        bruteForceKernel_Naive <<<numBlocks, blockSize>>> (
             len,
             d_target_hash,
             d_charSet,
@@ -119,17 +127,24 @@ int main(int argc, char** argv)
             totalCombinations,
             d_found
             );
+
+            hipError_t err = hipGetLastError();
+            if (err != hipSuccess)
+                printf("ERRORE LANCIO KERNEL (len %d): %s\n", len, hipGetErrorString(err));
     }
 
-    CHECK(cudaDeviceSynchronize()); // Attendo terminazione kernel
-    CHECK(cudaMemcpy(h_result, d_result, sizeof(char) * MAX_CANDIDATE, cudaMemcpyDeviceToHost));
+    CHECK(hipDeviceSynchronize()); // Attendo terminazione kernel
+    CHECK(hipMemcpy(h_result, d_result, sizeof(char) * MAX_CANDIDATE, hipMemcpyDeviceToHost));
     printf("Password decifrata: %s\n", h_result);
 
+    iElaps = cpuSecond() - iStart;
+    printf("Tempo GPU: %.4f secondi\n", iElaps);
+
     // Deallocazione variaibli device
-    CHECK(cudaFree(d_charSet));
-    CHECK(cudaFree(d_target_hash));
-    CHECK(cudaFree(d_found));
-    CHECK(cudaFree(d_result));
+    CHECK(hipFree(d_charSet));
+    CHECK(hipFree(d_target_hash));
+    CHECK(hipFree(d_found));
+    CHECK(hipFree(d_result));
 
     free(charSet);
 

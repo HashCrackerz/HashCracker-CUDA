@@ -370,3 +370,5 @@ FodyWeavers.xsd
 # Se vuoi versionare piccoli txt (come readme), commenta la riga *.txt
 *.dic
 wordlists/
+
+*.exe

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <limits.h>
+#include <time.h>
 
 char* leggiCharSet(const char* nomeFile) {
     FILE* file = fopen(nomeFile, "r");
@@ -35,7 +36,7 @@ int safe_atoi(const char* str, int* out_val) {
     errno = 0;
     val = strtol(str, &endptr, 10);
 
-    // controlla se non è stato letto nulla
+    // controlla se non ï¿½ stato letto nulla
     if (endptr == str)
         return 0;
 
@@ -43,10 +44,16 @@ int safe_atoi(const char* str, int* out_val) {
     if ((val > INT_MAX) || (val < INT_MIN))
         return 0;
 
-    // controlla se c’è stato un errore di conversione
+    // controlla se cï¿½ï¿½ stato un errore di conversione
     if (errno == ERANGE)
         return 0;
 
     *out_val = (int)val;
     return 1;
+}
+
+double cpuSecond() {
+    struct timespec ts;
+    timespec_get(&ts, TIME_UTC);
+    return ((double)ts.tv_sec + (double)ts.tv_nsec * 1.e-9);
 }

@@ -4,21 +4,21 @@
 #include "../SHA256_CUDA/sha256.cuh"
 #include <stdio.h>
 
-/*
-* MIGLIORIE rispetto alla naive
-•	gestire meglio la memoria (usare constant ecc)
-•	MAX_CANDIDATE = 6
-•	Limitare utilizzo registri (?)
-*/
+#define MAX_CANDIDATE 16
+// La dimensione deve corrispondere a quella definita in kernel.cu
+#define MAX_CHARSET_LENGTH 67 
 
-/* dato che 67 ^ 16 è un numero enorme non è tempisticamente possibile provare con numeri maggiori*/
-#define MAX_CANDIDATE 6
+// --- PARTI MANCANTI FONDAMENTALI ---
+// "extern" dice: "Queste variabili esistono in un altro file (kernel.cu), fidati di me."
+// Devono avere lo stesso tipo, nome e dimensione.
+extern __constant__ BYTE d_target_hash[SHA256_DIGEST_LENGTH];
+extern __constant__ char d_charSet[MAX_CHARSET_LENGTH];
+// -----------------------------------
 
-__global__ void bruteForceKernel_v1(int len, BYTE target_hash[], char* d_charSet, char* d_result,
-    int charSetLen, unsigned long long totalCombinations, bool* d_found)
+__global__ void bruteForceKernel_v1(int len, char* d_result, int charSetLen, unsigned long long totalCombinations, bool* d_found)
 {
-    unsigned long long idx = blockIdx.x * blockDim.x + threadIdx.x;
-    unsigned long long stride = blockDim.x * gridDim.x;
+    unsigned long long idx = (unsigned long long)blockIdx.x * blockDim.x + threadIdx.x;
+    unsigned long long stride = (unsigned long long)blockDim.x * gridDim.x;
 
     char candidate[MAX_CANDIDATE];
 
@@ -26,7 +26,7 @@ __global__ void bruteForceKernel_v1(int len, BYTE target_hash[], char* d_charSet
         // Se qualcun altro ha trovato la password, smetto subito
         if (*d_found) break;
 
-        // Genera la stringa
+        // Genera la stringa usando d_charSet (che ora è visibile grazie a extern)
         idxToString(idx, candidate, len, d_charSet, charSetLen);
 
         // Calcola Hash 
@@ -34,8 +34,9 @@ __global__ void bruteForceKernel_v1(int len, BYTE target_hash[], char* d_charSet
         dev_sha256((BYTE*)candidate, len, myHash);
 
         // Controlla risultato
-        if (check_hash_match(myHash, target_hash, SHA256_DIGEST_LENGTH)) {
-            *d_found = 1;
+        // ERRORE PRECEDENTE: avevi scritto 'target_hash', ma la variabile costante si chiama 'd_target_hash'
+        if (check_hash_match(myHash, d_target_hash, SHA256_DIGEST_LENGTH)) {
+            *d_found = true; // Usa true/false per i bool
 
             candidate[len] = '\0';
 
@@ -44,10 +45,8 @@ __global__ void bruteForceKernel_v1(int len, BYTE target_hash[], char* d_charSet
             {
                 d_result[i] = candidate[i];
             }
-
-            break;
+            break; // Break dal while
         }
-
         idx += stride;
     }
 }

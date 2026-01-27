@@ -2,5 +2,4 @@
 
 #include "../SHA256_CUDA/sha256.cuh"
 
-__global__ void bruteForceKernel_v1(int len, BYTE target_hash[], char* d_charSet, char* d_result,
-    int charSetLen, unsigned long long totalCombinations, bool* d_found);   
+__global__ void bruteForceKernel_v1(int len, char* d_result, int charSetLen, unsigned long long totalCombinations, bool* d_found);

@@ -1,5 +1,10 @@
 # se non parte: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 
+Write-Host "ATTENZIONE: Questo script convertirà tutti i file CUDA in HIP nella cartella corrente." -ForegroundColor Red
+Write-Host "I file originali verranno sovrascritti/rinominati."
+$confirmation = Read-Host "Sei sicuro di voler procedere? (s/N)"
+if ($confirmation -ne 's' -or $confirmation -ne 'S') { exit }
+
 # Configurazione estensioni file
 $extensions = @("*.cu", "*.cuh", "*.cpp", "*.h", "*.c")
 
@@ -112,3 +117,29 @@ hipcc -fgpu-rdc -O3 -std=c++14 --offload-arch=native `
     -l libcrypto.lib `
     -D_CRT_SECURE_NO_WARNINGS `
     -o naive_amd.exe
+
+hipcc -fgpu-rdc -O3 -std=c++14 --offload-arch=native `
+    kernel_v1.cu `   
+    HIPv1/hip_v1.cu `       
+    SHA256_HIP/sha256.cu `
+    UTILS/hip_utils.cu `
+    UTILS/utils.cpp `
+    -I. -I./HIPv1 -I./SHA256_HIP -I./UTILS `
+    -I"D:\OpenSSL-Win64\include" `
+    -L"D:\OpenSSL-Win64\lib\VC\x64\MTd" `
+    -l libcrypto.lib `
+    -D_CRT_SECURE_NO_WARNINGS `
+    -o v1_amd.exe   
+
+hipcc -fgpu-rdc -O3 -std=c++14 --offload-arch=native `
+    kernel_v2.cu `   
+    HIPv2/hip_v2.cu `       
+    SHA256_HIP/sha256.cu `
+    UTILS/hip_utils.cu `
+    UTILS/utils.cpp `
+    -I. -I./HIPv1 -I./SHA256_HIP -I./UTILS `
+    -I"D:\OpenSSL-Win64\include" `
+    -L"D:\OpenSSL-Win64\lib\VC\x64\MTd" `
+    -l libcrypto.lib `
+    -D_CRT_SECURE_NO_WARNINGS `
+    -o v2_amd.exe   

@@ -23,10 +23,10 @@
 }
 
 #define MAX_CANDIDATE 16
-#define MAX_CHARSET_LENGTH 67
+//#define MAX_CHARSET_LENGTH 67
 
-__constant__ BYTE d_target_hash[SHA256_DIGEST_LENGTH];
-__constant__ char d_charSet[MAX_CHARSET_LENGTH];
+//__constant__ BYTE d_target_hash[SHA256_DIGEST_LENGTH];
+//__constant__ char d_charSet[MAX_CHARSET_LENGTH];
 
 int main(int argc, char** argv)
 {
@@ -95,7 +95,7 @@ int main(int argc, char** argv)
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
     /* TEST VERSIONE CUDA NAIVE */
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    /*printf("--- Inizio Test Brute Force GPU NAIVE ---\n");
+    printf("--- Inizio Test Brute Force GPU NAIVE ---\n");
     // Allocazione variaibli device
     BYTE* d_target_hash;
     char* d_charSet, * d_result;
@@ -142,11 +142,11 @@ int main(int argc, char** argv)
     CHECK(cudaFree(d_target_hash));
     CHECK(cudaFree(d_found));
     CHECK(cudaFree(d_result));
-    */
+
 /*-----------------------------------------------------------------------------------------------------------------------------------------*/
 /* ---- TEST VERSIONE CUDA v1 ---- */
 /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    printf("--- Inizio Test Brute Force GPU v1 ---\n");
+    /*printf("--- Inizio Test Brute Force GPU v1 ---\n");
     // Allocazione variaibli device
 
     char* d_result;

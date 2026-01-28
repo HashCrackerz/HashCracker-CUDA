@@ -7,6 +7,7 @@
 #include <math.h>
 #include "UTILS/utils.h"
 #include "ESTENSIONE/SALT/sha256_salt.h"
+#include "ESTENSIONE/DIZIONARIO/sha256_dizionario.h"
 
 
 int main(int argc, char** argv)
@@ -22,7 +23,7 @@ int main(int argc, char** argv)
 
     /* --- CONTROLLO ARGOMENTI DI INVOCAZIONE --- */
     if (argc != 8 && argc != 7) {
-        printf("Usage: %s <block_size> <password_in_chiaro> <min_len> <max_len> <file_charset> <salt> <dizionario si/no> [file_dizionario]\n", argv[0]);
+        printf("Usage: %s  <password_in_chiaro> <min_len> <max_len> <file_charset> <salt> <dizionario si/no> [file_dizionario]\n", argv[0]);
         return 1;
     }
     secret_password = argv[1];
@@ -43,7 +44,7 @@ int main(int argc, char** argv)
 
     char* salt = argv[5];
 
-    if (argv[7][0] == 'S' || argv[7][0] == 's' || argv[7][0] == 'Y' || argv[7][0] == 'y')
+    if (argv[6][0] == 'S' || argv[6][0] == 's' || argv[6][0] == 'Y' || argv[6][0] == 'y')
     {
         dizionario = true;
     }
@@ -60,7 +61,20 @@ int main(int argc, char** argv)
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
     /* TEST VERSIONE SEQUENZIALE */
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
-    char *result = testSequenziale_estensione(target_hash, min_test_len, max_test_len, charSet, salt);
+    char* result = NULL;
+
+    if (dizionario) 
+    {
+        printf("\nAvvio attacco a dizionario\n");
+        result = testSequenziale_dizionario(target_hash, strlen(salt), charSet, salt);
+    }
+
+    if (result == NULL || !dizionario) 
+    {
+        printf("\nAttacco a dizionario non disponibile \n");
+        result = testSequenziale_salt(target_hash, min_test_len, max_test_len, charSet, salt);
+    }
+    
 
     printf("Passoword trovata: %s\n", result);
 

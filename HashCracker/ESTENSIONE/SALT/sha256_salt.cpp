@@ -1,6 +1,6 @@
 #include "sha256_salt.h"
 
-char* testSequenziale_estensione(unsigned char* target_hash, int min_test_len, int max_test_len, char charSet[], char salt[]) {
+char* testSequenziale_salt(unsigned char* target_hash, int min_test_len, int max_test_len, char charSet[], char salt[]) {
     printf("--- Inizio Test Brute Force CPU ---\n");
 
     char* result = NULL;

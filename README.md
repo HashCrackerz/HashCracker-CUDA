@@ -4,7 +4,7 @@
 
 ![alt text](https://img.shields.io/badge/Platform-NVIDIA%20%26%20AMD%20(HIP)-blue)
 
-![alt text](https://img.shields.io/badge/Algorithm-SHA256-red)
+![alt text](https://img.shields.io/badge/Algorithm-SHA256-purple)
 
 Progetto per il corso di Sistemi di Elaborazione Accelerata della facoltà di Ingegneria Informatica Magistrale di UniBo.
 Applicazione **parallela** per il recupero di password tramite attacco Brute Force su hash SHA-256 e attacco a dizionario, 

@@ -22,7 +22,7 @@ jobs:
       - name: Prepare specialized README
         run: |
           printf "### Nota:\n\n" > README_NEW.md
-          printf "Questa versione contiene script e porting per **AMD HIP**, il branch [main](https://github.com/HashCrackerz/HashCracker/edit/main) contiene la versione CUDA originale.\n\n" >> README_NEW.md
+          printf "Questa versione contiene script e porting per **AMD HIP**, il branch [main](https://github.com/HashCrackerz/HashCracker/main) contiene la versione CUDA originale.\n\n" >> README_NEW.md
           echo "---" >> README_NEW.md
           cat README.md >> README_NEW.md
 

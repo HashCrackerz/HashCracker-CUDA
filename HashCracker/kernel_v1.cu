@@ -29,7 +29,7 @@ __constant__ char d_charSet[MAX_CHARSET_LENGTH];
 
 int main(int argc, char** argv)
 {
-    /*invocazione: ./kernel [password_in_chiaro] [min_len] [max_len] [file_charset] [dizionario si/no] [file_dizionario] */
+    /*invocazione: ./kernel [password_in_chiaro] [min_len] [max_len] [file_charset] */
 
     //char charSet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#-.\0"; // 67 caratteri
     //char secret_password[] = "qwerty";
@@ -39,8 +39,8 @@ int main(int argc, char** argv)
     bool dizionario = false;
 
     /* --- CONTROLLO ARGOMENTI DI INVOCAZIONE --- */
-    if (argc != 6 && argc != 7) {
-        printf("Usage: %s <password_in_chiaro> <min_len> <max_len> <file_charset> <dizionario si/no> [file_dizionario]\n", argv[0]);
+    if (argc != 5) {
+        printf("Usage: %s <password_in_chiaro> <min_len> <max_len> <file_charset> \n", argv[0]);
         return 1;
     }
     secret_password = argv[1];
@@ -58,11 +58,6 @@ int main(int argc, char** argv)
 
     charSet = leggiCharSet(argv[4]);
     int charSetLen = strlen(charSet);
-
-    if (argv[5][0] == 'S' || argv[5][0] == 's' || argv[5][0] == 'Y' || argv[5][0] == 'y')
-    {
-        dizionario = true;
-    }
 
     printf("%s Starting...\n", argv[0]);
 

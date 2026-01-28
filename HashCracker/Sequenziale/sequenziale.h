@@ -10,6 +10,7 @@ extern "C" {
 
     void bruteForceSequenziale(int len, unsigned char target_hash[SHA256_DIGEST_LENGTH], char charSet[], char* result);
     void testSequenziale(unsigned char* target_hash, int min_test_len, int max_test_len, char charSet[]);
+    double cpuSecond();
 
 #ifdef __cplusplus
 }

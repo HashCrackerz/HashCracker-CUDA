@@ -23,7 +23,7 @@ Memory) e delle risorse di calcolo.
 ## ⚙️ Funzionalità
 - **Brute Force Incrementale**: Generazione dinamica di password dato un charset e un range di lunghezza (min-max).
 - **Attacco a Dizionario**: Supporto per wordlist esterne.
-- **Supporto Salt**: Gestione di hash saltati.
+- **Supporto Salt**: Gestione di hash saltati (Brute Force e attacco a dizionario).
 - **Multi-Platform**: Codice nativo CUDA per **NVIDIA** e script di porting (semi) automatico per **AMD** HIP.
 
 ## 📂 Struttura del Progetto

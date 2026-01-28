@@ -65,7 +65,7 @@ nvcc -arch=sm_89 -rdc=true -O3 \
     -o naive_cuda \
     -lssl -lcrypto -lcudadevrt -I.
 ```
-_(cambiare i nomi dei file e delle dipendenze in base alla versioen da compilare)_
+_(cambiare i nomi dei file e delle dipendenze in base alla versione da compilare)_
 
 ### AMD HIP (Porting)
 Il progetto include uno script per convertire automaticamente il codice CUDA in HIP.
@@ -89,7 +89,7 @@ Il progetto include uno script per convertire automaticamente il codice CUDA in 
       -o naive_amd.exe
    ```
 
-   _(cambiare i nomi dei file e delle dipendenze in base alla versioen da compilare)_
+   _(cambiare i nomi dei file e delle dipendenze in base alla versione da compilare)_
 
 ## 💻 Utilizzo
 Il programma accetta i parametri da riga di comando per la massima flessibilità:

@@ -374,3 +374,4 @@ wordlists/
 
 *.vcxproj
 *.vcxproj.filters
+.json

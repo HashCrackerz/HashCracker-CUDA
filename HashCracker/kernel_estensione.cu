@@ -29,7 +29,7 @@ __constant__ char d_salt[MAX_SALT_LENGTH];
 
 int main(int argc, char** argv)
 {
-    /*invocazione: ./kernel <block_size> <password_in_chiaro> <min_len> <max_len> <file_charset>  <dizionario si/no> [file_dizionario]*/
+    /*invocazione: ./kernel <block_size> <password_in_chiaro> <min_len> <max_len> <file_charset> <dizionario si/no> [file_dizionario]*/
 
     //char charSet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#-.\0"; // 67 caratteri
     //char secret_password[] = "qwerty";
@@ -92,8 +92,6 @@ int main(int argc, char** argv)
     printf("Hash Target: ");
     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) printf("%02x", target_hash[i]);
     printf("\n\n");
-
-    int blockSize = 256;
 
 /*-----------------------------------------------------------------------------------------------------------------------------------------*/
 /* ---- TEST ESTENSIONE CUDA (basato su CUDAv2) ---- */

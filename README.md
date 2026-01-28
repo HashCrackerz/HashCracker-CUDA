@@ -6,7 +6,7 @@
 
 ![alt text](https://img.shields.io/badge/Algorithm-SHA256-red)
 
-Progetto per il corso di Sistemi di Elaborazione Accelerata della facoltà di Ingegneria Informatica di UniBo.
+Progetto per il corso di Sistemi di Elaborazione Accelerata della facoltà di Ingegneria Informatica Magistrale di UniBo.
 Applicazione **parallela** per il recupero di password tramite attacco Brute Force su hash SHA-256 e attacco a dizionario, 
 con confronto prestazionale tra implementazione Sequenziale (CPU) e Parallela (GPU/CUDA).
 
@@ -57,7 +57,13 @@ convertire ad esempio gli import con i doppo apici in parentesi angolari. I file
 ### NVIDIA CUDA
 Assicurarsi di avere le librerie OpenSSL linkate correttamente.
 ```powershell
-
+nvcc -arch=sm_89 -rdc=true -O3 \
+    kernel_naive.cu \
+    CUDA_NAIVE/*.cu \
+    SHA256_CUDA/*.cu \
+    UTILS/*.cu UTILS/*.cpp \
+    -o naive_cuda \
+    -lssl -lcrypto -lcudadevrt -I.
 ```
 _(cambiare i nomi dei file e delle dipendenze in base alla versioen da compilare)_
 

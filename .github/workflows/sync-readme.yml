@@ -1,0 +1,41 @@
+name: Sync README to Other Branch
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'README.md' ]
+
+env:
+  TARGET_BRANCH: amd-port
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Prepare specialized README
+        run: |
+          echo "# Nota specifica per questo branch" > README_NEW.md
+          echo "Questa versione contiene configurazioni per AMD HIP, il main contiene la versione CUDA originale." >> README_NEW.md
+          echo "---" >> README_NEW.md
+          cat README.md >> README_NEW.md
+
+      - name: Push to secondary branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Usa la variabile definita sopra tramite ${{ env.TARGET_BRANCH }}
+          git fetch origin ${{ env.env.TARGET_BRANCH }}
+          git checkout ${{ env.TARGET_BRANCH }}
+          
+          mv README_NEW.md README.md
+          git add README.md
+          git commit -m "Update README from main (automated)"
+          git push origin ${{ env.TARGET_BRANCH }}

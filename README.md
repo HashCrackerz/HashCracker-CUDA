@@ -1,4 +1,4 @@
-# CUDA SHA-256 Brute Force Password Cracker
+# CUDA SHA-256 Brute Force & Dictionary (salted) Password Cracker
 
 ![alt text](https://img.shields.io/badge/Language-C++%20%7C%20CUDA-green)
 

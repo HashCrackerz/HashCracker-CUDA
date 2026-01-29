@@ -8,7 +8,7 @@
 
 ![alt text](https://img.shields.io/badge/Language-C++%20%7C%20CUDA-green)
 
-![alt text](https://img.shields.io/badge/Platform-NVIDIA%20(CUDA)-blue)  ![alt text](https://img.shields.io/badge/Platform-AMD%20(HIP)-red)
+![alt text](https://img.shields.io/badge/Platform-NVIDIA%20(CUDA)-blue) 
 
 ![alt text](https://img.shields.io/badge/Algorithm-SHA256-purple)
 

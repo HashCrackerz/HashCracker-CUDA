@@ -374,6 +374,7 @@ wordlists/
 
 *.vcxproj
 *.vcxproj.*
-.json
+*.json
 *rockyou*.txt
+
 

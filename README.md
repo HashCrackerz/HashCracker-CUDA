@@ -2,7 +2,7 @@
   <img width="150" alt="logo" src="https://github.com/user-attachments/assets/73297594-3581-4afd-ad0b-39d4bc0e66bf" />
 </p>
 
-# HashCracker
+# HashCracker (CUDA)
 ## _Parallel SHA-256 Brute Force & Dictionary (salted) Password Cracker_
 
 

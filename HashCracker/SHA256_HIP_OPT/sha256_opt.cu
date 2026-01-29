@@ -16,9 +16,9 @@
 /*************************** HEADER FILES ***************************/
 #include <stdlib.h>
 #include <memory.h>
-#include "cuda_runtime.h"
-#include "device_launch_parameters.h"
-#include "sha256.cuh"
+#include <hip/hip_runtime.h>
+// // // // // #include "device_launch_parameters.h"
+#include "sha256_opt.cuh"
 
 /****************************** MACROS ******************************/
 #define SHA256_BLOCK_SIZE 32            // SHA256 outputs a 32 byte digest
@@ -30,7 +30,7 @@ typedef struct {
 	WORD datalen;
 	unsigned long long bitlen;
 	WORD state[8];
-} CUDA_SHA256_CTX;
+} HIP_SHA256_CTX;
 
 /****************************** MACROS ******************************/
 #ifndef ROTLEFT
@@ -59,12 +59,14 @@ __constant__ WORD k[64] = {
 };
 
 /*********************** FUNCTION DEFINITIONS ***********************/
-__device__  __forceinline__ void cuda_sha256_transform(CUDA_SHA256_CTX *ctx, const BYTE data[])
+__device__  __forceinline__ void hip_sha256_transform(HIP_SHA256_CTX *ctx, const BYTE data[])
 {
 	WORD a, b, c, d, e, f, g, h, i, j, t1, t2, m[64];
 
+	#pragma unroll
 	for (i = 0, j = 0; i < 16; ++i, j += 4)
 		m[i] = (data[j] << 24) | (data[j + 1] << 16) | (data[j + 2] << 8) | (data[j + 3]);
+	#pragma unroll
 	for ( ; i < 64; ++i)
 		m[i] = SIG1(m[i - 2]) + m[i - 7] + SIG0(m[i - 15]) + m[i - 16];
 
@@ -76,7 +78,7 @@ __device__  __forceinline__ void cuda_sha256_transform(CUDA_SHA256_CTX *ctx, con
 	f = ctx->state[5];
 	g = ctx->state[6];
 	h = ctx->state[7];
-
+	#pragma unroll
 	for (i = 0; i < 64; ++i) {
 		t1 = h + EP1(e) + CH(e,f,g) + k[i] + m[i];
 		t2 = EP0(a) + MAJ(a,b,c);
@@ -100,7 +102,7 @@ __device__  __forceinline__ void cuda_sha256_transform(CUDA_SHA256_CTX *ctx, con
 	ctx->state[7] += h;
 }
 
-__device__ void cuda_sha256_init(CUDA_SHA256_CTX *ctx)
+__device__ void hip_sha256_init(HIP_SHA256_CTX *ctx)
 {
 	ctx->datalen = 0;
 	ctx->bitlen = 0;
@@ -114,22 +116,23 @@ __device__ void cuda_sha256_init(CUDA_SHA256_CTX *ctx)
 	ctx->state[7] = 0x5be0cd19;
 }
 
-__device__ void cuda_sha256_update(CUDA_SHA256_CTX *ctx, const BYTE data[], size_t len)
+__device__ void hip_sha256_update(HIP_SHA256_CTX *ctx, const BYTE data[], size_t len)
 {
 	WORD i;
 
+	#pragma unroll
 	for (i = 0; i < len; ++i) {
 		ctx->data[ctx->datalen] = data[i];
 		ctx->datalen++;
 		if (ctx->datalen == 64) {
-			cuda_sha256_transform(ctx, ctx->data);
+			hip_sha256_transform(ctx, ctx->data);
 			ctx->bitlen += 512;
 			ctx->datalen = 0;
 		}
 	}
 }
 
-__device__ void cuda_sha256_final(CUDA_SHA256_CTX *ctx, BYTE hash[])
+__device__ void hip_sha256_final(HIP_SHA256_CTX *ctx, BYTE hash[])
 {
 	WORD i;
 
@@ -145,7 +148,7 @@ __device__ void cuda_sha256_final(CUDA_SHA256_CTX *ctx, BYTE hash[])
 		ctx->data[i++] = 0x80;
 		while (i < 64)
 			ctx->data[i++] = 0x00;
-		cuda_sha256_transform(ctx, ctx->data);
+		hip_sha256_transform(ctx, ctx->data);
 		memset(ctx->data, 0, 56);
 	}
 
@@ -159,7 +162,7 @@ __device__ void cuda_sha256_final(CUDA_SHA256_CTX *ctx, BYTE hash[])
 	ctx->data[58] = ctx->bitlen >> 40;
 	ctx->data[57] = ctx->bitlen >> 48;
 	ctx->data[56] = ctx->bitlen >> 56;
-	cuda_sha256_transform(ctx, ctx->data);
+	hip_sha256_transform(ctx, ctx->data);
 
 	// Since this implementation uses little endian byte ordering and SHA uses big endian,
 	// reverse all the bytes when copying the final state to the output hash.
@@ -184,47 +187,47 @@ __global__ void kernel_sha256_hash(BYTE* indata, WORD inlen, BYTE* outdata, WORD
 	}
 	BYTE* in = indata  + thread * inlen;
 	BYTE* out = outdata  + thread * SHA256_BLOCK_SIZE;
-	CUDA_SHA256_CTX ctx;
-	cuda_sha256_init(&ctx);
-	cuda_sha256_update(&ctx, in, inlen);
-	cuda_sha256_final(&ctx, out);
+	HIP_SHA256_CTX ctx;
+	hip_sha256_init(&ctx);
+	hip_sha256_update(&ctx, in, inlen);
+	hip_sha256_final(&ctx, out);
 }
 
 __device__ void dev_sha256(const BYTE* data, WORD len, BYTE* out)
 {
-	CUDA_SHA256_CTX ctx;
+	HIP_SHA256_CTX ctx;
 
 	// Inizializzazione del contesto
-	cuda_sha256_init(&ctx);
+	hip_sha256_init(&ctx);
 
 	// Hashing dei dati
-	cuda_sha256_update(&ctx, data, len);
+	hip_sha256_update(&ctx, data, len);
 
 	// Scrittura risultato
-	cuda_sha256_final(&ctx, out);
+	hip_sha256_final(&ctx, out);
 }
 
 extern "C"
 {
-void mcm_cuda_sha256_hash_batch(BYTE* in, WORD inlen, BYTE* out, WORD n_batch)
+void mcm_hip_sha256_hash_batch(BYTE* in, WORD inlen, BYTE* out, WORD n_batch)
 {
-	BYTE *cuda_indata;
-	BYTE *cuda_outdata;
-	cudaMalloc(&cuda_indata, inlen * n_batch);
-	cudaMalloc(&cuda_outdata, SHA256_BLOCK_SIZE * n_batch);
-	cudaMemcpy(cuda_indata, in, inlen * n_batch, cudaMemcpyHostToDevice);
+	BYTE *hip_indata;
+	BYTE *hip_outdata;
+	hipMalloc(&hip_indata, inlen * n_batch);
+	hipMalloc(&hip_outdata, SHA256_BLOCK_SIZE * n_batch);
+	hipMemcpy(hip_indata, in, inlen * n_batch, hipMemcpyHostToDevice);
 
 	WORD thread = 256;
 	WORD block = (n_batch + thread - 1) / thread;
 
-	kernel_sha256_hash << < block, thread >> > (cuda_indata, inlen, cuda_outdata, n_batch);
-	cudaMemcpy(out, cuda_outdata, SHA256_BLOCK_SIZE * n_batch, cudaMemcpyDeviceToHost);
-	cudaDeviceSynchronize();
-	cudaError_t error = cudaGetLastError();
-	if (error != cudaSuccess) {
-		printf("Error cuda sha256 hash: %s \n", cudaGetErrorString(error));
+	kernel_sha256_hash <<<block, thread>>> (hip_indata, inlen, hip_outdata, n_batch);
+	hipMemcpy(out, hip_outdata, SHA256_BLOCK_SIZE * n_batch, hipMemcpyDeviceToHost);
+	hipDeviceSynchronize();
+	hipError_t error = hipGetLastError();
+	if (error != hipSuccess) {
+		printf("Error hip sha256 hash: %s \n", hipGetErrorString(error));
 	}
-	cudaFree(cuda_indata);
-	cudaFree(cuda_outdata);
+	hipFree(hip_indata);
+	hipFree(hip_outdata);
 }
 }

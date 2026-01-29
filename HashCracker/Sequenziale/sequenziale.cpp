@@ -70,7 +70,7 @@ void bruteForceSequenziale(int len, unsigned char target_hash[SHA256_DIGEST_LENG
         /*
         * Si parte dell'ultimo carattere della stringa
         * Si provano tutte le combinazioni che si ottengono con i caratteri < i fissati e facendo variare
-        * tutti i caratteri da "i" in poi [i è il carattere più a sinistra che cambia ( => != da "a" che è il default)]
+        * tutti i caratteri da "i" in poi [i ï¿½ il carattere piï¿½ a sinistra che cambia ( => != da "a" che ï¿½ il default)]
         */
         int i = len - 1;
         while (i >= 0) {

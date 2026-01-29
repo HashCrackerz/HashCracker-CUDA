@@ -1,5 +1,13 @@
 #include "utils.h"
 
+extern "C" {
+    double cpuSecond() {
+        struct timespec ts;
+        timespec_get(&ts, TIME_UTC);
+        return ((double)ts.tv_sec + (double)ts.tv_nsec * 1.e-9);
+    }
+}
+
 char* leggiCharSet(const char* nomeFile) {
     FILE* file = fopen(nomeFile, "r");
     if (!file) {
@@ -32,7 +40,7 @@ int safe_atoi(const char* str, int* out_val) {
     errno = 0;
     val = strtol(str, &endptr, 10);
 
-    // controlla se non è stato letto nulla
+    // controlla se non ï¿½ stato letto nulla
     if (endptr == str)
         return 0;
 
@@ -40,7 +48,7 @@ int safe_atoi(const char* str, int* out_val) {
     if ((val > INT_MAX) || (val < INT_MIN))
         return 0;
 
-    // controlla se c’è stato un errore di conversione
+    // controlla se cï¿½ï¿½ stato un errore di conversione
     if (errno == ERANGE)
         return 0;
 

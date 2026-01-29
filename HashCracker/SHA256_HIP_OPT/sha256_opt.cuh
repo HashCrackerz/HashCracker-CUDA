@@ -1,5 +1,5 @@
 /*
- * sha256.cuh CUDA Implementation of SHA256 Hashing    
+ * sha256.cuh HIP Implementation of SHA256 Hashing    
  *
  * Date: 12 June 2019
  * Revision: 1
@@ -22,7 +22,7 @@
 extern "C" {
 #endif
 
-    void mcm_cuda_sha256_hash_batch(BYTE* in, WORD inlen, BYTE* out, WORD n_batch);
+    void mcm_hip_sha256_hash_batch(BYTE* in, WORD inlen, BYTE* out, WORD n_batch);
 
 #ifdef __cplusplus
 }

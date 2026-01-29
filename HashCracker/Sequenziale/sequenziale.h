@@ -1,7 +1,7 @@
 #include <openssl/sha.h> 
 
 /*
-* Direttiva necessaria per linking con un progetto CUDA ( c++ ) che trasformerebbe il nome della funzioen in un 
+* Direttiva necessaria per linking con un progetto HIP ( c++ ) che trasformerebbe il nome della funzioen in un 
 * simbolo diverso da quello generato dal compilatore C e quindi non la troverebbe. 
 */
 #ifdef __cplusplus

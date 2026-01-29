@@ -377,3 +377,4 @@ wordlists/
 .json
 *rockyou*.txt
 
+*.exe

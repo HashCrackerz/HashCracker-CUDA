@@ -157,9 +157,17 @@ int main(int argc, char** argv)
             CHECK(cudaMemcpy(&h_found, d_found, sizeof(bool), cudaMemcpyDeviceToHost));
 
             if (h_found) {
+
                 CHECK(cudaMemcpy(h_result, d_result, MAX_CANDIDATE * sizeof(char), cudaMemcpyDeviceToHost));
-                printf("\n*** PASSWORD TROVATA (Dizionario): %s ***\n", h_result);
-                password_found = true;
+
+                printf("\nParola candidata trovata dalla GPU: %s\n", h_result);
+
+                if (testLogin(h_result, strlen(h_result), target_hash, salt)) {
+                    printf("\n************************************************\n");
+                    printf("*** PASSWORD TROVATA E VERIFICATA: %s ***\n", h_result);
+                    printf("************************************************\n");
+                    password_found = true;
+                }
             }
             else {
                 printf("Non trovata nel dizionario.\n");
@@ -201,62 +209,26 @@ int main(int argc, char** argv)
 
             CHECK(cudaDeviceSynchronize());
 
-            // Check immediato per uscire dal ciclo for
             bool h_found_local = false;
             CHECK(cudaMemcpy(&h_found_local, d_found, sizeof(bool), cudaMemcpyDeviceToHost));
-            if (h_found_local) password_found = true;
+
+            if (h_found_local) {
+                password_found = true;
+
+                CHECK(cudaMemcpy(h_result, d_result, MAX_CANDIDATE * sizeof(char), cudaMemcpyDeviceToHost));
+                printf("\n************************************************\n");
+                printf("*** PASSWORD TROVATA (Brute Force): %s ***\n", h_result);
+                printf("************************************************\n");
+
+                break; 
+            }
         }
     }
 
     CHECK(cudaDeviceSynchronize()); // Attendo terminazione kernel 
 
-    // Recupero risultati finali
-    // (Se password_found è true, h_result è già stato popolato se trovato col dizionario, 
-    // ma se trovato col salt devo copiarlo ora o l'avrei dovuto copiare nel loop. 
-    // Per sicurezza faccio una copia finale se d_found è true)
-
-    bool final_found = false;
-    CHECK(cudaMemcpy(&final_found, d_found, sizeof(bool), cudaMemcpyDeviceToHost));
-
-    if (final_found)
-    {
-        CHECK(cudaMemcpy(h_result, d_result, sizeof(char) * MAX_CANDIDATE, cudaMemcpyDeviceToHost));
-        printf("\nStringa Totale (Pass+Salt) trovata: %s\n", h_result);
-
-        char* final_decrypted_pass = NULL;
-        int totalLen = strlen(h_result);
-        int mySaltLen = strlen(salt);
-        int realPassLen = totalLen - mySaltLen;
-
-        if (realPassLen > 0)
-        {
-            // Controllo se il salt è all'INIZIO
-            if (strncmp(h_result, salt, mySaltLen) == 0)
-            {
-                final_decrypted_pass = (char*)malloc(sizeof(char) * (realPassLen + 1));
-                strcpy(final_decrypted_pass, h_result + mySaltLen);
-                printf("Schema rilevato: [SALT] + [PASSWORD]\n");
-            }
-            // Controllo se il salt è alla FINE
-            else if (strncmp(h_result + realPassLen, salt, mySaltLen) == 0)
-            {
-                final_decrypted_pass = (char*)malloc(sizeof(char) * (realPassLen + 1));
-                strncpy(final_decrypted_pass, h_result, realPassLen);
-                final_decrypted_pass[realPassLen] = '\0'; // Terminatore manuale
-                printf("Schema rilevato: [PASSWORD] + [SALT]\n");
-            }
-        }
-
-        if (final_decrypted_pass != NULL) {
-            printf("\n*** PASSWORD TROVATA: %s ***\n", final_decrypted_pass);
-            free(final_decrypted_pass);
-        }
-        else {
-            printf("Errore: Hash trovato, ma il salt non corrisponde alla posizione prevista.\n");
-        }
-    }
-    else {
-        printf("Nessuna password trovata nel range specificato.\n");
+    if (!password_found) {
+        printf("\nNessuna password trovata nel range specificato.\n");
     }
 
     // Cleanup
@@ -264,5 +236,7 @@ int main(int argc, char** argv)
     CHECK(cudaFree(d_result));
 
     free(charSet);
+    free(salted_password);
+
     return 0;
 }

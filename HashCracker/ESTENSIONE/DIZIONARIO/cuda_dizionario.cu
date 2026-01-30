@@ -42,7 +42,8 @@ __global__ void bruteForceKernel_dizionario(char* d_dictionary, int numWords, in
         if (check_hash_match(myHash, d_target_hash, SHA256_DIGEST_LENGTH)) {
             *d_found = true;
             combined[k] = '\0';
-            for (int i = 0; i <= k; i++) d_result[i] = combined[i];
+            for (int i = 0; i < wordLen; i++) d_result[i] = myWord[i];
+            d_result[wordLen] = '\0';
             return;
         }
 
@@ -56,7 +57,8 @@ __global__ void bruteForceKernel_dizionario(char* d_dictionary, int numWords, in
         if (check_hash_match(myHash, d_target_hash, SHA256_DIGEST_LENGTH)) {
             *d_found = true;
             combined[k] = '\0';
-            for (int i = 0; i <= k; i++) d_result[i] = combined[i];
+            for (int i = 0; i < wordLen; i++) d_result[i] = myWord[i];
+            d_result[wordLen] = '\0';
             return;
         }
     }

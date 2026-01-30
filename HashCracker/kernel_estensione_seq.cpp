@@ -12,7 +12,7 @@
 
 int main(int argc, char** argv)
 {
-    /*invocazione: ./kernel <password_in_chiaro> <min_len> <max_len> <file_charset> <dizionario si/no> [file_dizionario]*/
+    /*invocazione: ./kernel <password_in_chiaro> <min_len> <max_len> <file_charset> <salt> <dizionario si/no> [file_dizionario]*/
 
     //char charSet[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#-.\0"; // 67 caratteri
     //char secret_password[] = "qwerty";
@@ -57,26 +57,33 @@ int main(int argc, char** argv)
     printf("Hash Target: ");
     for (int i = 0; i < SHA256_DIGEST_LENGTH; i++) printf("%02x", target_hash[i]);
     printf("\n\n");
-    
+
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
     /* TEST VERSIONE SEQUENZIALE */
     /*-----------------------------------------------------------------------------------------------------------------------------------------*/
     char* result = NULL;
 
-    if (dizionario) 
+    double iStart, iElaps;
+    iStart = cpuSecond();
+
+    if (dizionario)
     {
         printf("\nAvvio attacco a dizionario\n");
         result = testSequenziale_dizionario(target_hash, strlen(salt), charSet, salt);
     }
 
-    if (result == NULL || !dizionario) 
+    if (result == NULL || !dizionario)
     {
         printf("\nAttacco a dizionario non disponibile \n");
         result = testSequenziale_salt(target_hash, min_test_len, max_test_len, charSet, salt);
     }
-    
+
 
     printf("Passoword trovata: %s\n", result);
+
+    // end time 
+    iElaps = cpuSecond() - iStart;
+    printf("Tempo CPU: %.4f secondi\n", iElaps);
 
     free(charSet);
     free(result);
@@ -84,3 +91,4 @@ int main(int argc, char** argv)
 
     return 0;
 }
+

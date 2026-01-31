@@ -27,7 +27,6 @@
 //memoria const
 __constant__ BYTE d_target_hash[SHA256_DIGEST_LENGTH];
 __constant__ char d_charSet[MAX_CHARSET_LENGTH];
-__constant__ char d_salt[MAX_SALT_LENGTH];
 
 int main(int argc, char** argv)
 {
@@ -108,8 +107,6 @@ int main(int argc, char** argv)
 
     CHECK(cudaMemcpyToSymbol(d_target_hash, target_hash, SHA256_DIGEST_LENGTH * sizeof(BYTE)));
     CHECK(cudaMemcpyToSymbol(d_charSet, charSet, charSetLen * sizeof(char)));
-    CHECK(cudaMemcpyToSymbol(d_salt, salt, MAX_SALT_LENGTH * sizeof(char)));
-
 
     CHECK(cudaMalloc((void**)&d_found, sizeof(bool)));
     CHECK(cudaMemset(d_found, false, sizeof(bool)));

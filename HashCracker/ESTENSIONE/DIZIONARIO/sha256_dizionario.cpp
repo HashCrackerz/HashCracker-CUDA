@@ -9,77 +9,71 @@ void remove_newline(char* str) {
     }
 }
 
-char* testSequenziale_dizionario(BYTE* target_hash, int saltLen, char* charSet, char* found_salt)
-{
-    //apro il file dizionario
-    FILE* file = fopen("ASSETS/rockyou.txt", "r");
-    if (!file) {
-        perror("Errore apertura file rockyou.txt");
-        return NULL;
-    }
+char* testSequenziale_dizionario(BYTE* target_hash, int saltLen, char* charSet, char* found_salt) {
+    int numWords = 0;
+    // Carichiamo il dizionario in RAM (Stride costante definito da DICT_WORD_LEN)
+    char* flatDict = load_flattened_dictionary("rockyou_trimmed.txt", &numWords);
+
+    if (!flatDict) return NULL;
 
     int charSetLen = strlen(charSet);
-
-    
-    int* indices = (int*)calloc(saltLen, sizeof(int));
-    if (!indices) { fclose(file); return NULL; }
-
-    char* current_salt = (char*)malloc(saltLen + 1);
-    if (!current_salt) { free(indices); fclose(file); return NULL; }
-    current_salt[saltLen] = '\0';
-
-    char line_buf[256];      // Buffer per leggere la password dal file
     char* result_password = NULL;
     bool found = false;
 
-    // Generazione di tutti i possibili SALT ---
-    while (true) {
-        // Costruzione della stringa salt corrente in base agli indici
-        for (int i = 0; i < saltLen; i++) {
-            current_salt[i] = charSet[indices[i]];
-        }
+    // Buffer temporaneo per il salt corrente
+    char* current_salt = (char*)malloc(saltLen + 1);
+    if (!current_salt) { free(flatDict); return NULL; }
+    current_salt[saltLen] = '\0';
 
-        // --- Scansione del dizionario ---
-        rewind(file); // Si riparte dall'inizio del file per ogni nuovo salt
+    // Buffer per la concatenazione salt + parola
+    char salted_combined[DICT_WORD_LEN + 64];
 
-        while (fgets(line_buf, sizeof(line_buf), file)) {
-            remove_newline(line_buf);
-            int passLen = strlen(line_buf);
+    printf("Dizionario caricato: %d parole. Avvio scansione...\n", numWords);
 
-            if (testLogin(line_buf, passLen, target_hash, current_salt) == 1) {
+    for (int w = 0; w < numWords && !found; w++) {
+        char* word = &flatDict[w * DICT_WORD_LEN];
+        int wordLen = strlen(word);
+
+        int* indices = (int*)calloc(saltLen, sizeof(int));
+        if (!indices) break;
+
+        while (true) {
+            for (int i = 0; i < saltLen; i++) {
+                current_salt[i] = charSet[indices[i]];
+            }
+
+            // Costruiamo la stringa: SALT + PAROLA
+            memcpy(salted_combined, current_salt, saltLen);
+            memcpy(salted_combined + saltLen, word, wordLen);
+            int combinedLen = saltLen + wordLen;
+
+            BYTE current_hash[SHA256_DIGEST_LENGTH];
+            SHA256((unsigned char*)salted_combined, combinedLen, current_hash);
+
+            if (memcmp(current_hash, target_hash, SHA256_DIGEST_LENGTH) == 0) {
                 found = true;
-
                 strcpy(found_salt, current_salt);
 
-                result_password = (char*)malloc((passLen + 1) * sizeof(char));
+                result_password = (char*)malloc((wordLen + 1) * sizeof(char));
                 if (result_password != NULL) {
-                    strcpy(result_password, line_buf);
+                    strcpy(result_password, word);
                 }
                 break;
             }
-        }
 
-        if (found) break;
-
-        int i = saltLen - 1;
-        while (i >= 0) {
-            indices[i]++;
-            if (indices[i] < charSetLen) {
-                break;
-            }
-            else {
+            int i = saltLen - 1;
+            while (i >= 0) {
+                indices[i]++;
+                if (indices[i] < charSetLen) break;
                 indices[i] = 0;
                 i--;
             }
+            if (i < 0) break;
         }
-
-        if (i < 0) break;
+        free(indices);
     }
 
-    // Pulizia memoria
-    free(indices);
     free(current_salt);
-    fclose(file);
-
-    return result_password; // Ritorna la password o NULL
+    free(flatDict);
+    return result_password;
 }
